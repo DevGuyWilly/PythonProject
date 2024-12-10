@@ -84,25 +84,44 @@ class AnalyticsController:
         try:
             top_readers = analyze_top_readers(self.data)
             if top_readers:
-                # Create a dictionary of reading times
-                reader_times = {reader['uuid']: reader['total_time_mins'] 
-                              for reader in top_readers}
-                fig = create_bar_plot(
-                    reader_times,
-                    "Top Readers by Reading Time",
-                    "Reader UUID",
-                    "Reading Time (minutes)"
-                )
-                self.view.show_plot(fig)
+                # Format the results as text
+                text_output = "\nTop 10 Readers by Total Reading Time:\n"
+                text_output += "-" * 70 + "\n"
+                text_output += f"{'Rank':<6}{'Reader UUID':<40}{'Time (mins)':<12}{'Time (hours)':<12}\n"
+                text_output += "-" * 70 + "\n"
+                
+                # Add each reader to the text output
+                for i, reader in enumerate(top_readers, 1):
+                    text_output += f"{i:<6}{reader['uuid']:<40}{reader['total_time_mins']:<12.2f}{reader['total_time_hours']:<12.2f}\n"
             else:
-                self.view.show_error("No reader data found")
+                text_output = "No reader data found. Nothing to show."
+            
+            # Show in text tab
+            self.view.show_text_result(text_output)
         except Exception as e:
             self.view.show_error(f"Error analyzing top readers: {str(e)}")
 
     def analyze_also_likes(self, doc_id, visitor_id=None):
-        analyzer = AlsoLikesAnalyzer(self.data)
-        results = analyzer.get_also_likes(doc_id, visitor_id)
-        display_also_likes(results)
+        try:
+            analyzer = AlsoLikesAnalyzer(self.data)
+            results = analyzer.get_also_likes(doc_id, visitor_id)
+            if results:
+                # Format the results as text
+                text_output = "\nTop 'Also Likes' Documents:\n"
+                text_output += "-" * 70 + "\n"
+                text_output += f"{'Rank':<6}{'Document ID':<50}{'Reader Count':<10}\n"
+                text_output += "-" * 70 + "\n"
+                
+                # Add each result to the text output
+                for i, (related_doc_id, count) in enumerate(results[:10], 1):
+                    text_output += f"{i:<6}{related_doc_id:<50}{count:<10}\n"
+            else:
+                text_output = "No related documents found. Nothing to show."
+            
+            # Show in text tab
+            self.view.show_text_result(text_output)
+        except Exception as e:
+            self.view.show_error(f"Error analyzing also likes: {str(e)}")
 
     def generate_also_likes_graph(self, doc_id, visitor_id=None):
         try:
