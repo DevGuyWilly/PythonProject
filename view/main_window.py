@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import os
+from PIL import Image, ImageTk
 
 class MainWindow:
     def __init__(self, controller):
@@ -165,4 +166,31 @@ class MainWindow:
         if not doc_id:
             self.show_error("Please enter a Document UUID")
             return
-        self.controller.generate_also_likes_graph(doc_id, visitor_id if visitor_id else None) 
+        self.controller.generate_also_likes_graph(doc_id, visitor_id if visitor_id else None)
+        
+    def show_graph_image(self, image_path):
+        """Display a graph image in the plot frame"""
+        # Clear previous content
+        for widget in self.plot_frame.winfo_children():
+            widget.destroy()
+            
+        try:
+            # Load and display the image
+            image = Image.open(image_path)
+            # Resize image to fit the frame while maintaining aspect ratio
+            display_size = (800, 600)  # Adjust these dimensions as needed
+            image.thumbnail(display_size, Image.Resampling.LANCZOS)
+            
+            # Convert to PhotoImage
+            photo = ImageTk.PhotoImage(image)
+            
+            # Create label to display image
+            label = ttk.Label(self.plot_frame, image=photo)
+            label.image = photo  # Keep a reference!
+            label.pack(expand=True)
+            
+            # Select the plot tab
+            self.notebook.select(self.plot_frame)
+            
+        except Exception as e:
+            self.show_error(f"Error displaying graph: {str(e)}") 

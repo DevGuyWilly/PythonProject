@@ -109,15 +109,13 @@ class AnalyticsController:
             analyzer = AlsoLikesAnalyzer(self.data)
             results = analyzer.get_also_likes(doc_id, visitor_id)
             if results:
-                # Create a dictionary of the top 10 related documents
-                related_docs = dict(results[:10])
-                fig = create_bar_plot(
-                    related_docs,
-                    f"Also Likes for Document {doc_id}",
-                    "Document ID",
-                    "Number of Common Readers"
-                )
-                self.view.show_plot(fig)
+                # Generate the graph using graphviz
+                graph = analyzer.generate_graph(doc_id, visitor_id, results[:10])
+                # Save the graph and get the image path
+                image_path = 'also_likes_graph'
+                graph.render(image_path, format='png', cleanup=True)
+                # Tell the view to display the image
+                self.view.show_graph_image(f"{image_path}.png")
             else:
                 self.view.show_error("No related documents found")
         except Exception as e:
